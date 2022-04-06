@@ -1,3 +1,207 @@
-#questo è il primo script che useremo a lezione
+#Il mio primo codice di R per il telerilevamento
 
+install.packages("raster")
+#usiamo le virgolette con tutte le cose esterne ad R, che il programma deve pescare da fuori  
 library(raster)
+
+setwd("C:/lab/")
+?setwd
+#imposta il percorso dei file in uscita dal programma, la working directory
+#meglio impostarla nel C del dispositivo, in modo da non perderla in giro e abbreviare il percorso il più possibile
+#attenti ad i nomi in maiuscolo, essendo R Key sensitive
+
+
+#Da quali file è composta un'immagine satellitare?
+#grd è il file grafico, la griglia
+#gri contiene le informazioni dei pixel, i colori, la riflettanza dei singoli pixel
+#xml sono i metadati, descrive i dati
+#hdr è l'headeer, leggendolo il sistema capisce le coordinate in uso
+#stx contiene coordinate e risoluzione
+
+#un file raster è composto da più bande di colore
+#ogni livello ha un sensore che cattura una certa lunghezza d'onda, con un certo colore
+
+l2011 <- brick("p224r63_2011_masked.grd")
+l2011
+#la funzione brick crea un raster multi strato (bande)
+#assegno il risultato della funzione ad un oggetto
+plot(l2011)
+#visualizzo a schermo i miei layer
+
+### DAY 2 ###
+
+# colour change
+cl <- colorRampPalette(c("black","grey","light grey")) (100) 
+#con la funzione colorRampPalette cambio la palette di colori del mio plot
+#nell'argomento inserisco un vettore c con l'elenco dei miei colori
+#lo assegno poi ad un oggetto cl
+#aggiungendo 100 io specifico i passaggi che voglio, il numero di colori
+?colorRampPalette
+plot(l2011, col = cl)
+#per il nuovo plot specificherò nell'argomento il la nuova palette, col = cl
+
+### DAY 3 ###
+
+# Bande Landsat
+# B1: blu
+# B2: verde
+# B3: rosso
+# B4: infrarosso vicino
+# B5: infrarosso medio
+# B6: infrarosso termico
+# B7: infrarosso medio
+
+#lista delle sigle identificative per ogni gamma di colore
+#voglio plottare la gamma del blu
+#la banda si chiama B1_sre
+#questa banda si trova all'interno dell'immagine
+
+plot(l2011$B1_sre)
+#nell'argomento inserisco il nome della mia immagine
+#legato insieme alla banda specificata con $
+#lega anche i dataframe ai suoi dati
+plot((l2011[1]))
+#metodo analogo, specificando l'indice della banda
+
+cls <- colorRampPalette(c("red","pink","orange","purple")) (200)
+plot(p224r63_2011$B1_sre, col=cls)
+
+dev.off()
+#comando che chiude a schermo qualsiasi visualizzazione grafica
+
+plot(p224r63_2011$B1_sre)
+plot(p224r63_2011$B2_sre)
+#plotto in altre due gamme di colori
+
+
+#Come plottare più immagini
+#ordinare la visualizzazione grafica dei plot
+#\creo quindi un multiframe
+
+# 1 row, 2 columns
+par(mfrow=c(1,2))
+#par viene usata per impostare i parametri grafici, in questo caso specifico righe e colonne da usare
+#la riga è sempre la prima a dover essere specificata
+#mettendolo prima dei comandi grafici imposterò la visualizzazione a schermo degli stessi
+plot(p224r63_2011$B1_sre)
+plot(p224r63_2011$B2_sre)
+#in questo modo i miei plot vengono messi su una riga, uno accanto all'altro
+
+# 2 row, 1 columns
+par(mfrow=c(2,1)) # if you are using columns first: par(mfcol....)
+plot(p224r63_2011$B1_sre)
+plot(p224r63_2011$B2_sre)
+#in questo modo vengono messi su 2 rige, uno sopra l'altro
+
+# plot the first four bands of Landsat
+par(mfrow=c(4,1))
+plot(p224r63_2011$B1_sre)
+plot(p224r63_2011$B2_sre)
+plot(p224r63_2011$B3_sre)
+plot(p224r63_2011$B4_sre)
+#ho plottato le prime 4 bande del Landsat
+
+par(mfrow=c(2,2))
+plot(l_2011$B1_sre)
+plot(l_2011$B2_sre)
+plot(l_2011$B3_sre)
+plot(l_2011$B4_sre)
+#se ho 4 bande la visualizzazione migliore è sicuramente quella del quadrato
+
+#posso fare la stessa cosa assegnando ad ogni plot una data palette di colori
+par(mfrow=c(2,2))
+
+clb <- colorRampPalette(c("dark blue","blue","light blue")) (100)
+plot(l_2011$B1_sre, col=clb)
+#colorblue nelle sfumature di blu
+clg <- colorRampPalette(c("dark green","green","light green")) (100)
+plot(l_2011$B2_sre, col=clg)
+#colorgreen
+clr <- colorRampPalette(c("dark red","red","pink")) (100)
+plot(l_2011$B3_sre, col=clr)
+#colorred
+clnir <- colorRampPalette(c("red","orange","yellow")) (100)
+plot(l_2011$B4_sre, col=clnir)
+#colori caldi
+dev.off()
+#Visualizzazione di Dati tramite il plot RGB
+
+# Bande Landsat
+# B1: blu
+# B2: verde
+# B3: rosso
+# B4: infrarosso vicino
+# B5: infrarosso medio
+# B6: infrarosso termico
+# B7: infrarosso medio
+par(mfrow=c(2,2))
+plotRGB(l_2011, r=3, g=2, b=1, stretch="Lin")
+plotRGB(l_2011, r=4, g=3, b=2, stretch="Lin")
+plotRGB(l_2011, r=3, g=4, b=2, stretch="Lin")
+plotRGB(l_2011, r=3, g=2, b=4, stretch="Lin")
+#vengono specificati gli indici dei canali colore, da 1 nlayers
+#stretch stretcha i valori al fine di aumentare il contrasto e la visibilità
+
+pdf("il_mio_primo_pdf_con_R.pdf")
+#pdf è una funzione di stampa con la quale posso salvare la visualizzazione a schermo del mio grafico
+#ne esistono per varie estensioni jpeg,png,ecc
+par(mfrow=c(2,2))
+plotRGB(l_2011, r=3, g=2, b=1, stretch="Lin")
+plotRGB(l_2011, r=4, g=3, b=2, stretch="Lin")
+plotRGB(l_2011, r=3, g=4, b=2, stretch="Lin")
+plotRGB(l_2011, r=3, g=2, b=4, stretch="Lin")
+dev.off()
+#la destinazione del mio grafico sarà la stessa specificata all'inizio
+
+par(mfrow=c(2,1))
+plotRGB(l_2011, r=3, g=4, b=2, stretch="Lin")
+plotRGB(l_2011, r=3, g=4, b=2, stretch="hist")
+#stretchatura istogramma
+?plotRGB
+
+# par natural colours, flase colours, and false colours with histogram stretching
+par(mfrow=c(3,1))
+plotRGB(l_2011, r=3, g=2, b=1, stretch="Lin")
+plotRGB(l_2011, r=3, g=4, b=2, stretch="Lin")
+plotRGB(l_2011, r=3, g=4, b=2, stretch="hist")
+dev.off()
+
+#DAY 4
+l2011 <- brick()
+plot(l2011)
+
+
+
+### DAY 5 ###
+
+#creazione di immagini colorate
+library(raster)
+setwd("C:/lab/")
+
+l2011 <- brick("p224r63_2011_masked.grd")
+l2011
+#importata l'immagine
+
+clnir <- colorRampPalette(c("red", "orange", "yellow")) (100)
+plot(l2011$B4_sre, col=clnir)
+# Plot di l2011 nel canale NIR  (NIR band)
+#qualsiasi schermo lavora con lo schema dei colori RGB
+#montati insieme danno gli altri valori
+plotRGB(l2011, r=3, g=2, b=1, stretch="Lin")
+#vedo l'immagine come dal satellite
+plotRGB(l2011, r=4, g=3, b=2, stretch="Lin")
+#scalo tutto di uno
+#plot nella scala di valori dell'infrarosso
+#avrò la riflettanza di tutto ciò che riflette molto nell'infrarosso
+
+par(mfrow=c(2,1))
+plotRGB(l2011, r=3, g=2, b=1, stretch="lin")
+plotRGB(l2011, r=3, g=4, b=2, stretch="hist")
+
+l1988 <- brick("p224r63_1988.grd")
+l1988
+#carico img 1988
+
+par(mfrow=c(2,1))
+plotRGB(l1988, r=4, g=3, b=2, stretch="Lin")
+plotRGB(l2011, r=4, g=3, b=2, stretch="Lin")
