@@ -147,3 +147,8 @@ library(rasterdiv)
 #è la media dell'NDVI fra il 1999 e il 2017
 #più c'è vegetazione più c'è biomassa, più è alto l'indice
 plot(copNDVI)
+
+#ci occuperemo di Time Series Analysis
+#andremo a vedere cosa è successo nel tempo
+#caricando più immagini contemporaneamte
+#Analizzeremo quanto ghiaccio si sta sciogliendo in Groenlandia
