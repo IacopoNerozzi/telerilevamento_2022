@@ -65,3 +65,85 @@ cld <- colorRampPalette(c("blue", "white", "red")) (100)
 #stare attenti a non scrivere c maiuscolo
 dev.off()
 plot(dvi_dif, col=cld)
+
+### DAY 7 ###
+
+#esiste un altro indice detto ndvi, molto simile
+#viene normalizzato sulla somma delle due bande
+#l'altro era una differenza fra le due condizioni
+#essendo standardizzato è utile quando si usano immagini con bit diversi
+
+#l'ndvi minimo è -1 lo si ha con l'acqua
+#il massimo è 1
+#range fra -1 e 1
+
+#il range del dvi è fra -255 e 255
+
+#Range dvi (8bit): -255 a 255
+#ange ndvi (8bit): -1 a 1
+
+library(raster)
+setwd("C:/lab/")
+#carico il pacchetto di lavoro e imposto la working directory
+
+l1992 <- brick("defor1_.jpg")
+l1992
+l2006 <- brick("defor2_.jpg")
+l2006
+#importo le immagini
+#come vedo se l'immagine è a 8bit?
+#guardo il minimo e massimo valore
+#essendo compreso fra 0 e 255 è 8bit
+
+#NDVI 1992
+
+dvi1992 = l1992[[1]] - l1992[[2]]
+ndvi1992 = dvi1992 / (l1992[[1]] + l1992[[2]])
+#dvi fratto la somma
+#oppure
+ndvi1992 = (l1992[[1]] - l1992[[2]]) / (l1992[[1]] + l1992[[2]])
+#sccrittura alternativa
+
+cl <- colorRampPalette(c("darkblue", "yellow", "red", "black")) (100)
+plot(ndvi1992, col=cl)
+
+par(mfrow=c(2,1))
+plotRGB(l1992, r=1, g=2, b=3, strech="lin")
+plot(ndvi1992, col=cl)
+#plottato un multiframe
+#sono shiftate perchè una l'immagine originale con legenda, va bene così
+#l'indice uno, dove tutto l'infrarosso viene assorbito e l'indice crolla è dell'acqua
+#come mai allora buona parte dell'acqua non è scura?
+#perchè ha moltissimi solidi disciolti dipendentemente dalla stagione
+
+#NDVI 2006
+
+dvi2006 <- l2006[[1]] - l2006[[2]]
+ndvi2006 = dvi2006 / (l2006[[1]] + l2006[[2]])
+
+cl <- colorRampPalette(c("darkblue", "yellow", "red", "black")) (100)
+plot(ndvi2006, col=cl)
+
+par(mfrow=c(2,1))
+plot(ndvi1992, col=cl)
+plot(ndvi2006, col=cl)
+#se non chiudo il par precedente con un dev.off non avrei bisogno di riparirlo stavolta
+dev.off()
+#Indici Spettali Automatici
+
+library(RStoolbox)
+#carico la libreria, utile per analisi dati
+?RStoolbox
+#all'interno c'è la nostra funzione per gli indici spettrali
+si1992 <- spectralIndices(l1992, green=3, red=2, nir=1)
+plot(si1992, col=cl)
+#plotto a schermo tutti gli indici che riguardano la nostra area di studio
+
+#rasterdiv
+install.packages("rasterdiv")
+library(rasterdiv)
+#andiamo a vedere quale dataset c'è dentro raster
+#ndvi di copernicus
+#è la media dell'NDVI fra il 1999 e il 2017
+#più c'è vegetazione più c'è biomassa, più è alto l'indice
+plot(copNDVI)
