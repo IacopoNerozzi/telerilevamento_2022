@@ -1,0 +1,49 @@
+### Land Cover ###
+
+#Codice in cui genereremo immagini land cover da immagini satellitari
+
+library(raster)
+library(RStoolbox)
+#contiene le funzioni per la classificazione
+setwd("C:/lab/")
+#set working directory
+
+#lavorerò di nuovo con le immagini satellitari del Rio Pexoto, con la deforestazione avvenuta fra il 1992 e il 2006
+l1992 <- brick("defor1_.jpg")
+#l1992 mi ricorda che è un landset del 1992
+#mi dava errore "file non esistente" non avevo lanciato il comando di working directory
+C
+#non importa che riscriva r=, ecc
+l2006 <- brick("defor2_.jpg")
+plotRGB(l2006, 1,2,3, stretch="lin")
+#ho importato anche il secondo file
+
+par(mfrow=c(2,1))
+plotRGB(l1992, 1,2,3, stretch="lin")
+plotRGB(l2006, 1,2,3, stretch="lin")
+dev.off()
+#le visualizzo insieme, per un confronto
+
+install.packages("ggplot2")
+library(ggplot2)
+
+#creo un multiframe con ggplot2
+par(mfrow=c(2,1))
+ggRGB(l1992, 1,2,3, stretch="lin")
+ggRGB(l2006, 1,2,3, stretch="lin")
+#non andava la funzione RGB, di nuovo dimenticato di caricare RStoolbox
+dev.off()
+
+library(patchwork)
+#compositore di plot
+#l'idea è quella di considerare i plot come oggetti, dopodichè metterli in fila e li somma
+#con la funzione ggRGB abbiamo creato due plot
+#possiamo quindi associare la funzione a due oggetti per poi comporli
+p1 <- ggRGB(l1992, 1,2,3, stretch="lin")
+p2 <- ggRGB(l2006, 1,2,3, stretch="lin")
+
+p1 + p2
+#unione dei due plot
+# e se volessi metterli uno sopra l'altro?
+p1/p2
+#uso la frazione
