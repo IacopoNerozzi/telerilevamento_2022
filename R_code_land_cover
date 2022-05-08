@@ -34,6 +34,54 @@ ggRGB(l2006, 1,2,3, stretch="lin")
 #non andava la funzione RGB, di nuovo dimenticato di caricare RStoolbox
 dev.off()
 
+#guardando l'immagine del 92 c'è poca differenza fra suolo nudo e acqua, questo perchè l'acqua non è pura ma contiene molto detrito
+#possiamo quindi fare due classi
+#a cosa serve classificare? posso poi mettere a confronto le due classi nelle due immagini
+#posso avere un valore della porzione di terreno che da foresta è passato ad agricolo
+
+#classificazione
+l1992c <- unsuperClass(l1992, nClasses=2)
+#associo il modello della classificazione all'oggetto
+#aggiungo c per ricordarmi che è classificato
+l1992c
+#è un raster layer
+#il n di px è lo stesso del n di px in entrata
+#non consideriamo la risoluzione, essendo già elaborata
+#il numero di valori dell'immagine classificata è 1 o 2, non 255 dell'immagine a 8bit
+plot(l1992c)
+#mi da errore volendolo plottare, è normale
+#dicendo "does not have components 'x' and 'y'" dice che non è una mappa, ma un modello
+#al mio modello è legata una mappa con il segno del dollaro
+#devo farlo anche io con il comando
+plot(l1992c$map)
+#lego quindi la mappa al modello e lo plotto
+
+#nella classificazione il nome del modello viene scelto dal software, per questo i colori possono variare fra operatori (noi studenti)
+#nel mio caso:
+#class 1: Forest. bianco
+#Class 2: Agriculture + Water, verde
+
+#Esercizio: classificare anche la seconda immagine
+l2006
+l2006c <- unsuperClass(l2006, nClasses=2)
+l2006c
+plot(l2006c$map)
+#nel mio caso:
+#class 1: Forest. bianco
+#Class 2: Agriculture + Water, verde
+
+#Frequenze
+install.packages("questionr")
+
+freq(l1992c$map)
+#restituisce le frquenze delle due classi
+#cosa sono i numeri? il numero di pixel delle due classi
+#class 1: 306012
+#class 2: 35280
+freq(l2006c$map)
+#class 1: 164480
+#class 2: 178246
+
 library(patchwork)
 #compositore di plot
 #l'idea è quella di considerare i plot come oggetti, dopodichè metterli in fila e li somma
