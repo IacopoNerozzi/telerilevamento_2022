@@ -12,7 +12,7 @@ setwd("C:/lab/")
 l1992 <- brick("defor1_.jpg")
 #l1992 mi ricorda che è un landset del 1992
 #mi dava errore "file non esistente" non avevo lanciato il comando di working directory
-C
+plotRGB(l1992, 1,2,3, stretch="lin")
 #non importa che riscriva r=, ecc
 l2006 <- brick("defor2_.jpg")
 plotRGB(l2006, 1,2,3, stretch="lin")
@@ -33,6 +33,22 @@ ggRGB(l1992, 1,2,3, stretch="lin")
 ggRGB(l2006, 1,2,3, stretch="lin")
 #non andava la funzione RGB, di nuovo dimenticato di caricare RStoolbox
 dev.off()
+
+library(patchwork)
+#compositore di plot
+#l'idea è quella di considerare i plot come oggetti, dopodichè metterli in fila e li somma
+#con la funzione ggRGB abbiamo creato due plot
+#possiamo quindi associare la funzione a due oggetti per poi comporli
+p1 <- ggRGB(l1992, 1,2,3, stretch="lin")
+p2 <- ggRGB(l2006, 1,2,3, stretch="lin")
+
+p1 + p2
+#unione dei due plot
+# e se volessi metterli uno sopra l'altro?
+p1/p2
+#uso la frazione
+dev.off()
+
 
 #guardando l'immagine del 92 c'è poca differenza fra suolo nudo e acqua, questo perchè l'acqua non è pura ma contiene molto detrito
 #possiamo quindi fare due classi
@@ -73,6 +89,10 @@ plot(l2006c$map)
 #Frequenze
 install.packages("questionr")
 
+#riprendiamo le due immagini classificate
+plot(l1992c$map)
+plot(l2006c$map)
+
 freq(l1992c$map)
 #restituisce le frquenze delle due classi
 #cosa sono i numeri? il numero di pixel delle due classi
@@ -82,16 +102,143 @@ freq(l2006c$map)
 #class 1: 164480
 #class 2: 178246
 
+
+
+### 28/4
+
+library(raster)
+library(ggplot2)
+library(RStoolbox)
 library(patchwork)
-#compositore di plot
-#l'idea è quella di considerare i plot come oggetti, dopodichè metterli in fila e li somma
-#con la funzione ggRGB abbiamo creato due plot
-#possiamo quindi associare la funzione a due oggetti per poi comporli
+
+setwd("C:/lab/")
+
+l1992 <- brick("defor1_.jpg")
+l2006 <- brick("defor2_.jpg")
+#importo i landsat in R
+
+#avendo importato il pacchetto ggplot2 posso usare la funzione ggRGB anzichè plotRGB
 p1 <- ggRGB(l1992, 1,2,3, stretch="lin")
 p2 <- ggRGB(l2006, 1,2,3, stretch="lin")
-
+#plotto e assegno a due oggetti
+#associo alle 3 componenti (RGB) le tre bande (123)
+#siccome la prima banda era il vicino infrarosso (di norma la quarta) ce lo restituisce come prima
 p1 + p2
-#unione dei due plot
-# e se volessi metterli uno sopra l'altro?
-p1/p2
-#uso la frazione
+#multiframe dei plot
+
+l1992c <- unsuperClass(l1992, nClasses=2)
+l1992c
+l2006c <- unsuperClass(l2006, nClasses=2)
+l2006c
+#classifico le due immagini con la funzione unsuperClass
+
+#riprendiamo le due immagini classificate
+plot(l1992c$map)
+plot(l2006c$map)
+# così posso rivisualizzarle
+
+
+#Frequenze
+freq1992 <- freq(l1992c$map)
+freq1992
+#class 1: 306409 (forest) verde
+#class 2: 34883 (agriculture + water) bianco
+freq2006 <- freq(l2006c$map)
+freq2006
+#class 1: 179053 (forest) verde
+#class 2: 163673 (agriculture + water) bianco
+
+#se volessi trovare la proporzione di foresta sul territorio?
+#devo fare una proporzione fra le due
+#nell'immagine la mia unità di misura sono i pixel
+#calcolerò quindi i pixel di foresta sul totale
+
+
+#Percentuali di pixel 1992
+
+l1992
+#nelle dimensioni vedo il numero di pixel totali
+tot1992 <- 341292
+#lo assegno all'oggetto immagine
+prop_forest_92 <- 306409/341292
+prop_forest_92
+#ho la proporzione della classe foresta
+perc_forest_92 <- 306409/341292 *100
+perc_forest_92
+# ho la percentuale della classe foresta
+
+#Esercizio: percentuale dell'agricoltura nel 92
+
+#metodo 1
+l1992
+freq1992
+perc_agri_92 <- 34883/341292 * 100
+perc_agri_92
+#ho la percentuale di entrambe le classi
+
+#metodo 2
+perc_agri_92 <- 100 - perc_forest_92
+perc_agri_92
+
+
+#Percentuali nel 2006?
+
+l2006
+tot2006 <- 342726
+#popolazione di pixel: l'intero numero di pixel
+#non è un campione di pixel, un sottogruppo rappresentativo dell'insieme
+#abbiamo usato campioni all'inizio della classificazione
+freq2006
+#riguardo le mie frequenze
+perc_forest_06 <- 179053/tot2006 * 100
+perc_forest_06
+perc_agri_06 <- 100 - perc_forest_06
+perc_agri_06
+
+#DATI FINALI
+#perc_forest_92 : 89.779
+#perc_agri_92 : 10.220
+#perc_forest_06 : 52.243
+#perc_agri_06 : 47.756
+
+#Quanto cambiano le immagini nel tempo?
+
+#Costruiamo un dataframe con i nostri dati
+#Columns (fields)
+class <- c("Agriculture", "Forest")
+#questo è un vettore, un insieme di caratteri dello stesso tipo
+#sono testi, characters, da noi scelti, dobbiamo usare le virgolette
+percent_1992 <- c(89.779, 10.220)
+percent_2006 <- c(52.243, 47.756)
+#A questo punto ho dichiarato e creato le colonne del mio dataframe
+#le colonne non sono altro che singoli vettori
+
+multitemporal <- data.frame(class, percent_1992, percent_2006)
+#nella funzione dataframe inserisco in fila i miei vettori
+multitemporal
+#ho creato il dataframe
+
+?ggplot
+#per plottare il dataframe dovremo usare la funzione ggplot
+
+## ggplot(df, aes(x, y, other aesthetics))
+#ggplot ha una sintassi complessa dato che si compone di più "funzioni"
+#ggplot in se crea un nuovo plot vuoto, riempito dagli argomenti
+#dobbiamo specificare il dataset/dataframe da usare e l'aesthetic da usare(righe, colonne e colori ecc=)
+ggplot(multitemporal, aes(x=class, y=percent_1992, color=class))
+#metto come x le classi, come colonne le percentuali del 92
+#color=class indica che il colore varia in base alla classe
+
+#la funzione così com'è apre un plot vuoto, non abbiamo definito che plot vogliamo
+#la funzione che mi permette di fare un grafico a barre è geom_bar
+?geom_bar
+ggplot(multitemporal, aes(x=class, y=percent_1992, color=class)) + 
+  geom_bar(stat="identity", fill="white")
+#importante avere il + sulla riga di ggplot
+
+#facciamo lo stesso per il 2006
+
+ggplot(multitemporal, aes(x=class, y=percent_2006, color=class)) + 
+  geom_bar(stat="identity", fill="white")
+#noto come agriculture abbia preso piede
+
