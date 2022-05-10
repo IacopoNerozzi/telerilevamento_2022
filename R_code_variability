@@ -1,0 +1,28 @@
+### Variabilità ###
+
+#Analisi ghiacciaio del Similaun
+#utilizzeremo un sensore Sentinel, un satellite dell'ESA, con risoluzione di 10m
+#analizzeremo la variabilità nell'immagine sia dal punto di vista geologico sia dal punto di vista ecologico
+#vedendo i vari tipi di roccia e misurando la variabilità nel bosco (più è alta la diversià vegetale, maggiore sarà quella animale)
+
+
+#nella parte rossa chiara abbiamo le praterie sommitali
+#nella parte rosso scura ci sono boschi misti
+#nelle parti grigie suolo nudo e roccia
+#parte nera acqua
+#parte bianca è innevata
+
+#calcoleremo l'eterogeneià con 
+
+
+library(raster)
+library(ggplot2)
+library(RStoolbox)
+library(patchwork)
+
+setwd("C:/lab/")
+
+#ci servirà un nuovo pacchetto 
+install.packages("viridis")
+library(viridis)
+#ci servirà per creare delle colorazioni mediante delle delle legende che hanno già dei nomi
