@@ -23,6 +23,78 @@ library(patchwork)
 setwd("C:/lab/")
 
 #ci servirà un nuovo pacchetto 
-install.packages("viridis")
+#install.packages("viridis")
 library(viridis)
 #ci servirà per creare delle colorazioni mediante delle delle legende che hanno già dei nomi
+
+sentinel <- brick("sentinel.png")
+sentinel
+#abbiamo 4 bande disponibili
+#la risoluzione indica 1 singolo pixel
+?ggRGB
+
+g1 <- ggRGB(sentinel, 1,2,3, stretch="lin")
+#stretch non è sempre necessario con ggRGB
+
+g2 <- ggRGB(sentinel, 2,1,3, stretch="lin")
+
+g1 + g2
+#grazie a patchwork le visualizziamo insieme
+
+#Calcolo della variabilità su NIR
+
+nir <- sentinel[[1]]
+nir
+#prima banda dell'immagine
+plot(nir)
+#vedo che ho tanta variabilità
+#solitamente è quella con più variabilità
+sd3 <- focal(nir, matrix(1/9, 3, 3), fun=sd)
+#calcolo della variabilità
+#l'immagine che voglio utilizzare è nir
+#dopodichè devo dichiarare che tipo di matrice vogliamo
+#la matrice è 1/9, un pixel in una matrice 3x3 pixel
+#la matrice è formata da 3x3 pixel, quindi il numero di righe e colonne è 3
+#ora devo specificare la funzione
+#una comune è la deviazione standard(intervallo in cui cadono il 68% dei valori)
+
+clsd <- colorRampPalette(c("blue", "green", "pink", "magenta", "orange", "brown", "red", "yellow"))(100)
+#creo la palette
+
+plot(sd3, col=clsd)
+#plot della variabilità
+
+#plottiamola con ggplot
+
+ggplot() + 
+  geom_raster(sd3, mapping=aes(x=x, y=y, fill=layer))
+#per plottare un raster dobbiamo utilizzare geom_raster come abbinamento a ggplot
+#dobbiamo mettere la funzione, le dimensioni e il fondo da usare
+
+#plottiamola con viridis
+ggplot() + 
+  geom_raster(sd3, mapping=aes(x=x, y=y, fill=layer)) +
+  scale_fill_viridis() +
+  ggtitle("Standard deviation by viridis")
+
+#cividis
+ggplot() + 
+  geom_raster(sd3, mapping=aes(x=x, y=y, fill=layer)) +
+  scale_fill_viridis(option = "cividis") +
+  ggtitle("Standard deviation by viridis package")
+#è molto simile ma diminuisce la gamma verso i colori scuri
+#per chi vede poco i colori
+#rende più nette le variazioni
+
+#magma
+ggplot() + 
+  geom_raster(sd, mapping=aes(x=x, y=y, fill=layer)) +
+  scale_fill_viridis(option = "magma") +
+  ggtitle("Standard deviation by viridis package")
+#magma lavora anche sulle variazioni intermedie, contrastandole di più
+
+
+#Esercizio: fare lo stesso calcolo in una finestra 7x7
+
+sd7 <- focal(nir, matrix(1/49, 7, 7), fun=sd)
+sd7
