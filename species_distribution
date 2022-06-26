@@ -1,0 +1,71 @@
+library(raster)
+#per gestire dati spaziali
+#per gestire dati vettoriali (coordinate)
+install.packages("sdm")
+library(sdm)
+#per modellizzare la distribuzione delle specie
+library(rgdal)
+
+#stavolta non usiamo il setting della working directory
+#usiamo un file di sistema, un file di esempio tirato dentro dalla libreria sdm
+?system.file
+
+file <- system.file("external/species.shp", package="sdm") 
+#con la funzione si esce da R per entrare nella cartella external, una cartella di dati default
+
+species <- shapefile(file)
+#a questo punto posso effettivamente produrre uno shapefile
+
+species
+#è un nuovo tipo di dato
+#spatial points Data Frame
+
+plot(species, pch=19)
+#ecco il mio plot, dei punti nello spazio
+#specifico il punto da usare
+
+occ <- species$Occurrence
+#dovrei avere una serie di valori, 0 e 1, assenza e presenza della specie registrata
+
+plot(species[occ == 1,], col= "green", pch=19)
+#plotto i punti di presenza
+#specifico shp, con le quadre seleziono la variabile
+#operatore matematico == per voler solo quei punti con Occurence uguale a 1
+#importante mettere la VIRGOLA subito dopo
+#gli altri argomenti sono per abbellire
+
+
+#se ora voglio plottare anche le assenze, non devo riusare plot
+#altrimenti sovrascriverebbe il precedente plot
+#devo usare points
+points(species[occ == 0,], col="red", pch=19)
+#ho quindi plottato tutti i punti con colori diversi
+
+#i predittori sono i fattori di varia natura che governano la distribuzione di una specie
+
+
+path <- system.file("external", package="sdm") 
+#guardo il percorso dei predittori
+path
+#dopo mi servirà specificare il percorso dei file, associando il percorso ad un oggetto mi risparmio di scriverlo tutto
+
+# list the predictors
+lst <- list.files(path=path, pattern='asc$',full.names = T) 
+#in questo modo dico ad R di listare tutti i file con estensione asc
+#pattern è il pattern  comune di estensione da ricercare
+#esplicito True per fullnames per mantenerli
+lst
+
+preds <- stack(lst)
+#con lo stack ho riportato le variabili in formato di raster
+preds
+#si chiamano predittori perchè nel modello serviranno a predirre dove si trova la specie
+
+cl <- colorRampPalette(c('blue','orange','red','yellow')) (100)
+plot(preds, col=cl)
+#plotto quindi i miei preditori con la palette scelta
+
+#plotto il mio predittore insieme alla presenza della specie
+plot(preds$elevation, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+#ho quindi una specie che non si trova ad alta quota. principalmente a quote medio basse
