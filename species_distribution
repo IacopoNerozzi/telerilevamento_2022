@@ -6,8 +6,16 @@ library(sdm)
 #per modellizzare la distribuzione delle specie
 library(rgdal)
 
+library(ggplot2)
+library(patchwork)
+library(viridis)
+#aggiunti successivamente 
+
+
+
 #stavolta non usiamo il setting della working directory
 #usiamo un file di sistema, un file di esempio tirato dentro dalla libreria sdm
+
 ?system.file
 
 file <- system.file("external/species.shp", package="sdm") 
@@ -61,6 +69,13 @@ preds <- stack(lst)
 preds
 #si chiamano predittori perchè nel modello serviranno a predirre dove si trova la specie
 
+
+elev <- preds$elevation
+prec <- preds$precipitation
+temp <- preds$temperature
+vege <- preds$vegetation
+#associo i predittori a oggetti, in modo da non doverli sempre riscrivire
+
 cl <- colorRampPalette(c('blue','orange','red','yellow')) (100)
 plot(preds, col=cl)
 #plotto quindi i miei preditori con la palette scelta
@@ -69,3 +84,81 @@ plot(preds, col=cl)
 plot(preds$elevation, col=cl)
 points(species[species$Occurrence == 1,], pch=16)
 #ho quindi una specie che non si trova ad alta quota. principalmente a quote medio basse
+
+#plotto con la temperatura
+plot(preds$temperature, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+#specie che si trova in aree di temperatura medio alta
+
+#plotto con precipitazioni
+plot(preds$precipitation, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+#specie che vuole precipitazioni medio alte
+
+#plotto con vegetazione
+plot(preds$vegetation, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+#specie che vuole buona copertura boschiva
+
+#le unità di misura?
+summary(preds)
+#si provano a dedurre dai summary, 2879 metri è plausibile, come prep in mm, la T sarà con chissà quale scala
+#forse la veg è stata riscalata
+
+#a questo punto creaiamo un modello
+#creiamo una funzione che approssimi le specie e mi restituisca un output con le specie previste
+#dirò al modello quanta probabilià c'è di trovare una specie ad un dato valore della variabile predittrice
+
+#per farlo uso funzioni interne a sdm
+datasdm <- sdmData(train=species, predictors=preds)
+#crea un oggetto con tutti i dati
+#i dati che ci servono sono train e predictors
+datasdm
+#il test di indipendenza assicurerebbe che i dati a terri siano stati rilevati casualmente
+
+#cosa fa il modello? esprime la prob di trovare una specie ad un certo valore di variabile
+#registrando presenza e assenza io ho zeri ed uni di presenza/assenza della specie, non ho valori intermedi
+#il modello crea una funzione logistica approssimativa, un modello lineare glrm "general linear regression model"
+#con tante variabili si dice modello di regressione lineare generalizzato
+
+m1 <- sdm(Occurrence ~ elevation + precipitation + temperature + vegetation, data=datasdm, methods = "glm")
+#la probabilità della specie, messa in relazione con i predittori
+#poi dico da dove prendere i dati
+#il metodo di modello
+#associo il modello ad un nome
+m1
+
+p1 <- predict(m1, newdata=preds)
+#in pratica chiedo: sulla base del modello m1 dimmi dove è più prob. trovare la specie
+#il primo argomento è il modello su cui lavorare
+#newdata è la spazializzazione basata sui predittori
+#l'estensione della previsione
+p1
+
+#vado quinidi a vedere il plot della previsione della distribuzione delle specie
+plot(p1, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+#insieme alla presenza
+#dove ci sono i punti neri la previsione è più alta, torna bene
+#in alcuni, pochi, casi la previsione della specie è bassa ma la specie è presente
+#è normale, lè specie possono essere segnalate in ambienti poco idonei teoricamente
+
+#solitamente si usano dati terzi per vedere la bontà del modello
+#oppure si dividono in dati test e train
+#altrimenti esiste la cross-validation che aggiunge un controllo extra
+#il cross toglie i punti uno per volta e controlla il modello, per poi reinserirli e rifarlo
+
+
+#voglio ora plottare insieme le mappe
+#aggiungo ggplot, patchwork e viridis alle library
+#non funziona adesso, forse ggiungiamo poi in secondo momento
+#risolviamo con mfrow
+
+par(mfrow=c(2,3))
+plot(p1, col=cl)
+plot(elev, col=cl)
+plot(prec, col=cl)
+plot(temp, col=cl)
+plot(vege, col=cl)
+dev.off()
+#visualizzo a schermo il modello con i plot dei predittori
