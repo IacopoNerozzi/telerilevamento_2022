@@ -1,0 +1,6 @@
+#Codice per analizzare dati LiDAR
+
+
+setwd("C:/lab/")
+#setting working directory
+
