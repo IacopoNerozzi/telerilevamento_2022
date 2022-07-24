@@ -1,6 +1,89 @@
-#Codice per analizzare dati LiDAR
+### LIDAR ###
 
-
+#codice R per l'analisi di dati Lidar
+library(raster)
+library(ggplot2)
+library(viridis)
+library(RStoolbox)
 setwd("C:/lab/")
-#setting working directory
+
+dsm_2013 <- raster("C:/lab/dati_lidar/dati/2013Elevation_DigitalElevationModel-0.5m.tif")
+#carico il mio file e lo associo all'oggetto
+dsm_2013
+#una buona risoluzione, 0.5x0.5m
+
+dtm_2013 <- raster("C:/lab/dati_lidar/dati/2013Elevation_DigitalTerrainModel-0.5m.tif")
+dtm_2013
+
+plot(dtm_2013)
+
+#il DSM rappresenta l'impulso di ritorno dalla cima degli alberi 
+#una parte dell'impulso penetra nel bosco, arriva nel terreno e ritorna
+#questa è il DTM
+#la differenza fra le due è il chm. 
+
+chm_2013 <- dsm_2013 - dtm_2013
+chm_2013
+#ho il mio valore nei values
+
+ggplot() + 
+  geom_raster(chm_2013, mapping =aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis() +
+  ggtitle("CHM 2013 San Genesio/Jenesien")
+#plotto la mia area
+
+dsm_2004 <- raster("C:/lab/dati_lidar/dati/2004Elevation_DigitalElevationModel-2.5m.tif")
+#carico il mio file e lo associo all'oggetto
+dsm_2004
+#una buona risoluzione, 0.5x0.5m
+dtm_2004 <- raster("C:/lab/dati_lidar/dati/2004Elevation_DigitalTerrainModel-2.5m.tif")
+dtm_204
+#faccio la stessa cosa con i dati del 2004, definizione più bassa, ogni 2.5m
+
+chm_2004 <- dsm_2004 - dtm_2004
+chm_2004
+#trovo anche il chm del 2004
+
+ggplot() + 
+  geom_raster(chm_2004, mapping =aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis() +
+  ggtitle("CHM 2004 San Genesio/Jenesien")
+#plot chm 2004
+
+
+#posso adesso confrontare i due paesaggi, in modo da vedere cosa è cambiato
+difference_chm <- chm_2013 - chm_2004
+#il problema è la differente risoluzione, R non capisce come calcolarla
+
+#dobbiamo approssimare una risoluzione all'altra
+#meglio convertire la mappa più definita nell'approssimazione minore
+chm_2013res <- resample(chm_2013, chm_2004)
+#ricampioniamo con resample, specificando la prima immagine, da ricampionare sulla base della seconda
+#primo argomento: img da ricampionare
+#secondo argomento:immagine su cui adattare il ricampionamento
+#simile alla funzione aggregate che abbiamo usato, bisognava specificare il fattore d'aggregazione
+difference_chm <- chm_2013res - chm_2004
+difference_chm
+
+ggplot() + 
+  geom_raster(difference_chm, mapping =aes(x=x, y=y, fill=layer)) + 
+  scale_fill_viridis() +
+  ggtitle("Difference CHM San Genesio/Jenesien")
+#vedo delle differenze positive di 20 metri e negative di 30
+#quelle negative sono spiegabili con un taglio
+#il giallo corrisponde ad una crescita del bosco
+
+#visualizzare il point cloud
+#il punto di partenza del dato lidar
+#per farlo devo caricare il pacchetto lidR
+install.packages("lidR")
+library(lidR)
+
+pointcloud <- readLAS("C:/lab/dati_lidar/dati/point_cloud.laz")
+#leggo, carico il pint cloud
+pointcloud
+
+plot(pointcloud)
+#genera il 3D dell'area
+#lentissimo da caricare e visualizzare, mi apre la finestra ma non riesco a muovere il cursore
 
