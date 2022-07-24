@@ -124,6 +124,7 @@ clnir <- colorRampPalette(c("red","orange","yellow")) (100)
 plot(l_2011$B4_sre, col=clnir)
 #colori caldi
 dev.off()
+
 #Visualizzazione di Dati tramite il plot RGB
 
 # Bande Landsat
@@ -166,15 +167,8 @@ plotRGB(l_2011, r=3, g=4, b=2, stretch="Lin")
 plotRGB(l_2011, r=3, g=4, b=2, stretch="hist")
 dev.off()
 
-#DAY 4
-l2011 <- brick()
-plot(l2011)
+### Creazione di immagini colorate ###
 
-
-
-### DAY 5 ###
-
-#creazione di immagini colorate
 library(raster)
 setwd("C:/lab/")
 
