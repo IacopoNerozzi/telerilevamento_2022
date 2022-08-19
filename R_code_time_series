@@ -13,6 +13,8 @@ l1992 <- brick("defor1_.jpg")
 l1992
 #classe Rasterbrick, ovvero sono presenti vari livelli
 #sono presenti 3 sole bande con i 3 nomi
+#valori oscillanti fra 0 e 255, approssimazione della minima e massima riflettanza possibile 0 e 1
+#approssimazione per non avere valori decimali associati ai pixel tramite la teoria di Shannon (informazione tramite bit)
 plot(l1992)
 #visualizzo a schermo
 plotRGB(l1992, r=1, g=2, b=3, stretch="Lin")
@@ -44,7 +46,8 @@ plotRGB(l2006, r=1, g=2, b=3, stretch="Lin")
 #vedremo quindi la differenza
 
 dvi1992 <- l1992[[1]] - l1992[[2]]
-#1 e 2 sono indicativi delle bande
+#1 e 2 sono indicativi delle bande, NIR - RED
+#stare attenti ad utilizzare l'uguale anzichè l'assegnazione
 dvi1992 <- l1992$defor1_.1 - l1992$defor1_.2
 #soluzione analoga utilizzando i nomi
 
