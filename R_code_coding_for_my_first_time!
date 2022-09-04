@@ -28,9 +28,9 @@ l2011
 plot(l2011)
 #visualizzo a schermo i miei layer
 
-### DAY 2 ###
 
-# colour change
+
+### Colour Change
 cl <- colorRampPalette(c("black","grey","light grey")) (100) 
 #con la funzione colorRampPalette cambio la palette di colori del mio plot
 #nell'argomento inserisco un vettore c con l'elenco dei miei colori
@@ -40,9 +40,8 @@ cl <- colorRampPalette(c("black","grey","light grey")) (100)
 plot(l2011, col = cl)
 #per il nuovo plot specificherò nell'argomento il la nuova palette, col = cl
 
-### DAY 3 ###
 
-# Bande Landsat
+### Bande Landsat
 # B1: blu
 # B2: verde
 # B3: rosso
@@ -125,7 +124,8 @@ plot(l_2011$B4_sre, col=clnir)
 #colori caldi
 dev.off()
 
-#Visualizzazione di Dati tramite il plot RGB
+
+### PLOT RGB
 
 # Bande Landsat
 # B1: blu
@@ -167,7 +167,9 @@ plotRGB(l_2011, r=3, g=4, b=2, stretch="Lin")
 plotRGB(l_2011, r=3, g=4, b=2, stretch="hist")
 dev.off()
 
-### Creazione di immagini colorate ###
+
+
+### Creazione di immagini colorate
 
 library(raster)
 setwd("C:/lab/")
