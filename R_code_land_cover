@@ -104,7 +104,7 @@ freq(l2006c$map)
 
 
 
-### 28/4
+### Land Cover % e plottaggio dei dati elaborati
 
 library(raster)
 library(ggplot2)
