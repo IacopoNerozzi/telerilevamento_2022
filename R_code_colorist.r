@@ -2,7 +2,7 @@ Colorist ###
 
 install.packages("colorist")
 library(colorist)
-library(ggplot2)
+library(ggplot2) #colorist funziona con ggplot2
 
 data("fiespa_occ")
 #campionamento annuale
@@ -12,13 +12,11 @@ fiespa_occ
 #metrica
 met1 <- metrics_pull(fiespa_occ)
 
-
 #creazione della palette
 pal <- palette_timecycle(fiespa_occ)
 #creo una palette per ciclo annuale
 
 #creazione della mappa multipla
-
 map_multiples(met1, pal, ncol = 3, labels = names(fiespa_occ))
 #ho diviso in 3 colonne le distribuzioni mese per mese nel corso dell'anno
 
@@ -49,7 +47,7 @@ legend_timecycle(pal, origin_label = "1 jan")
 #specifico la stessa palette e il mese di partenza
 
 
-#fisher
+#Esempio Pekania penna
 
 data("fisher_ud")
 #nuovo dato di partenza
