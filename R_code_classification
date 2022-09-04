@@ -1,8 +1,6 @@
-### Recupero lezioni 2 ###
-
 ### Classificazione d'immagini
 
-# Grand Canyon
+# Grand Canyon, class. min. e rocce
 
 library(RStoolbox)
 library(raster)
