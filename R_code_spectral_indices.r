@@ -1,4 +1,4 @@
-### DAY 6 ###
+
 ### Indici spettrali ###
 install.packages("rgdal")
 library(rgdal)
@@ -153,7 +153,8 @@ plot(copNDVI)
 #caricando più immagini contemporaneamte
 #Analizzeremo quanto ghiaccio si sta sciogliendo in Groenlandia
 
-### DAY 8 ###
+####
+
 
 setwd("C:/lab/greenland/")
 library(raster)
