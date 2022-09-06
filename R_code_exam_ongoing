@@ -1,0 +1,265 @@
+library(raster)
+#permette l'utilizzo dei raster e funzioni annesse
+library(RStoolbox)
+#permette l'uso della Unsupervised Classification
+library(ggplot2)
+#permette l'uso di funzioni ggplot e ggRGB
+library(patchwork)
+#permette l'utilizzo di funzioni per comporre plot
+library(gridExtra)   #permette l'uso e creazione di griglie, tabelle e grafici
+#caricamento di librerie necessarie ai codici successivi
+setwd("C:/lab/esame/bande")
+#settaggio come nostro solito della working directory
+
+
+
+### PRIMA PARTE, Importazione dei dati, ricampionamento e una prima visualizzazione ###
+
+#IMMAGINE DEL 2013
+list_2013 <- list.files(pattern="2013_B")
+# list.files crea una lista di oggetti secondo un pattern specificato comune
+import_2013 <- lapply(list_2013, raster)
+#assegno alla lista creata la funzione raster, con la funzione lapply
+toscana_2013 <- stack(import_2013)
+#creo un blocco di dati con la funzione stack, impilo le bande scaricate singolarmente
+toscana_2013
+#controllo info sull'oggetto
+plot(toscana_2013)
+#plot delle singole bande in serie
+
+# Disposizione delle bande, info presa da https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites
+# B2: Blu
+# B3: Verde
+# B4: Rosso
+# B5: NIR
+
+plotRGB(toscana_2013, r=4, g=3, b=2, stretch="Lin")
+#plot dell'immagine 2013 a colori naturali
+#associo le 3 componenti RGB alla banda giusta
+
+#IMMAGINE DEL 2019
+#svolgo lo stesso processo usato per le img 2013
+list_2019 <- list.files(pattern="2019_B")  
+import_2019 <- lapply(list_2019, raster)
+toscana_2019 <- stack(import_2019)
+toscana_2019
+#è importante controllare che le immagini abbiano la stessa risoluzione e dimensione
+#è più grande di quella del 2013, dovrò ricampionarla per averle di ugual dimensione
+plot(toscana_2019)
+plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")
+
+#RICAMPIONAMENTO
+#meglio convertire la mappa più definita in quella meno definita, R fa un lavoro migliore
+toscana_2019 <- resample(toscana_2019, toscana_2013)
+#scelgo di sovrascriverla all'immagine originale
+#primo argomento: img da ricampionare
+#secondo argomento: img su cui adattare il ricampionamento
+toscana_2019
+#dalle info vedo le nuove dimensioni dell'immagine
+
+#Nota negativa: il ricampionamento è davvero lento sul mio dispositivo
+
+#LE DUE IMMAGINI A CONFRONTO
+#con la funzione par posso visualizzare insieme le due immagini per un primo confronto visivo
+par(mfrow=c(1,2)) 
+#due righe e una colonna, avrò immagini una sopra l'altra
+plotRGB(toscana_2013, r=4, g=3, b=2, stretch="Lin")
+plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")
+dev.off()
+#la visualizzazione "doppia" di par rimarrebbe di default 
+#dev.off azzera i plot e le impostazioni grafiche
+
+
+
+### SECONDA PARTE, visualizzazione in NIR ###
+
+gg2013 <- ggRGB(toscana_2013, r=5, g=4, b=3, stretch="Lin")
+#scelgo di usare ggRGB per il plot, una funzione che mi permettere di associare poi il plot ad un oggetto
+#spesso non è necessario specificare lo stretch usando ggRGB
+#plot associando alla prima componente Red la banda NIR (Near InfraRed), la numero 5
+#la vegetazione riflette il NIR con colore visualizzato Rosso
+
+gg2019 <- ggRGB(toscana_2019, r=5, g=4, b=3, stretch="Lin")
+#faccio la stessa cosa con l'immagine del 2019
+
+gg2013 + gg2019
+#grazie alla libreria "patchwork" posso visualizzare due plot assegnati ad oggetti
+#è un altro modo per fare un confronto visivo
+dev.off()
+
+#nota negativa...ggRGB lavora molto lentamente sul mio dispositivo
+
+
+
+### TERZA PARTE, crop dell'immagine sull'area d'interesse ###
+#La mia immagine raffigura la Toscana, ma il mio lavoro vuole indagare solo l'area di Pistoia-Prato-Firenze
+#l'idea è quella di ritagliare, dall'immagine di partenza, la mia area di interesse
+
+#CROP DELL'IMMAGINE 2013
+extent(toscana_2013)
+#visualizzo l'estensione della mia immagine, con i valori limite
+ggRGB(toscana_2013, r=5, g=4, b=3, stretch="Lin")
+#plot ggRGB per avere l'estensione dell'immagine originale anche su plot
+#in questo modo le inserisco meglio
+ext <- c(648000, 685000, 4840000, 4870000) # qui metto le coordinate, le estensioni limite del mio ritaglio
+#creo un vettore di posizione che inserirò nella funzione crop, farà da coordinate di ritaglio
+piana2013 <- crop(toscana_2013, ext)
+piana2013
+#nuova immagine croppata
+plotRGB(piana2013, r=4, g=3, b=2, stretch="Lin")
+#plot del crop, stavolta con plotRGB, in colori naturali
+
+#CROP DELL'IMMAGINE 2019
+extent(toscana_2019)
+#dopo il ricampionamento i valori sono gli stessi dell'immagine 2013
+#non ho bisogno di ricalcolare le coordinate, uso ext 2013
+piana2019 <- crop(toscana_2019, ext)
+plotRGB(piana2019, r=4, g=3, b=2, stretch="Lin")
+
+par(mfrow=c(1,2))
+plotRGB(piana2013, r=5, g=4, b=3, stretch="Lin")
+plotRGB(piana2019, r=5, g=4, b=3, stretch="Lin")
+#confronto le nuove immagini con visualizzazione in NIR
+dev.off()
+
+
+
+### Terza Parte, calcoleremo il DVI nel 2013, poi nel 2019, infine vederemo la differenza negli anni ###
+
+#DVI 2013
+dvi2013 <- piana2013[[5]] - piana2013[[4]]
+dvi2013
+#5 e 4 sono indicativi delle bande, NIR - RED
+
+#DVI 2019
+dvi2019 <- piana2019[[5]] - piana2019[[4]]
+#calcolo la stessa cosa per il 2020
+dvi2019
+
+#creo una palette per la visualizzazione delle aree
+#uso una palette creata a lezione
+cl <- colorRampPalette(c("darkblue", "yellow", "red", "black")) (100)
+#il giallo cattura l'attenzione dell'occhio, buon colore da usare per evidenziare criticità
+#si associa quindi alle zone interessate da cementificazione
+
+#visualizzazione in multiframe con par per confronto visivo
+par(mfrow=c(1,2))
+plot(dvi2013, col=cl)
+plot(dvi2019, col=cl)
+dev.off()
+#dovrei apprezzare quindi la variazione di aree rosse (vegetazione) fra 2013 e 2019
+#dovrei vedere l'aumento delle aree gialle (deforestate) fra 2013 e 2019
+#il 2013 è tutto rosso, non capisco perchè
+# QUELLA DEL 2013 NON è UNA BUONA IMMAGINE ?
+
+#Calcolo della differenza di DVI fra 2013 e 2019
+dvi_dif <- dvi2013 - dvi2019
+dvi_dif
+
+#riprendo una palette utilizzata a lezione per visualizzare la variazione a schermo
+cld <- colorRampPalette(c("blue", "white", "red")) (100)
+
+#plot in multiframe della variazione DVI negli anni
+
+plot(dvi_dif, col=cld)
+#nelle aree con più alta variazione ho colore rosso
+
+# NDVI, utile per fare confronti
+
+ndvi2013 <- dvi2013 / (piana2013[[5]] + piana2013[[4]])
+ndvi2013
+
+ndvi2019 <- dvi2019 / (piana2019[[5]] + piana2019[[4]])
+ndvi2019
+
+### QUARTA PARTE, classificazione delle immagini ###
+
+#voglio quantificare su mappa quanto è cambiato
+#categorizzo quindi in 3 classi la mappa con la funzione unsuperClass
+#unsuperclass non mantiene sempre la stessa corrispondenza colore-categorizzazione, la associa randomicamente ad ogni rilancio dello script
+set.seed(17)
+#prima di ciò ho lanciato set.seed() che mi permette di avere la stessa classificazione per tutte le immagini
+class13 <- unsuperClass(piana2013, nClasses=3)
+class19 <- unsuperClass(piana2019, nClasses=3)
+#ottengo 2 rasterlayer classificati in 2 livelli
+
+#visualizzo a schermo le mappe 2000 e 2020 per un primo confronto visivo
+par(mfrow=c(1,2))
+plot(class13$map)
+plot(class19$map)
+dev.off()
+#non riesce a discriminare l'acqua dalla vegetazione, una debolezza della classificazione, va a perdersi informazione
+
+
+
+### Quinta Parte, quantificazione della variazione del suolo attraverso le frequenze dei pixel categorizzati ###
+
+#calcolo ora la frequenza delle 3 diverse categorie di pixel
+#una debolezza di questo sistema è l'errore di calcolo che si ottiene ogni volta che si rilancia il codice
+freq(class13$map)
+# B1 (bianco) (suolo antr.) = 415445
+# B2 (verde) (bosco) = 198294
+# B3 (giallo) (edifici) = 619237
+# NA = 24 ---------> pixel che non riesce a categorizzare, sono pixel NA, senza informazione
+freq(class19$map) 
+# B1 (bianco) (suolo antr.) = 557374 
+# B2 (verde) (bosco + acqua) = 451527 
+# B3 (giallo) (edifici) = 224099
+#al rilancio del codice una piccola porzione di pixel cambia categoria non permettendo di avere sempre valori fissi in categorizzazione
+#non inficia significativamente sulla frequenza relativa (o percentuale)
+
+#calcolo delle percentuali, il numero di pixel per banda, sull'area tot
+area_tot <- (415445 + 198294 + 619237) 
+area_tot
+#1232976
+
+prop1 <- freq(class13$map) / area_tot
+prop1
+# B1 (bianco) (suolo antr.) = 33.7 %
+# B2 (verde) (edifici) = 16.1 %
+# B3 (giallo) (bosco) = 50.2 %
+# NA = 0.000...       = non influente sulle percentuali 
+
+prop2 <- freq(class19$map) / area_tot
+prop2
+# B1 (bianco) (suolo antr.) = 45.2 %
+# B2 (verde) (bosco + acqua) = 36.6 %
+# B3 (giallo) (edifici) = 18.1
+
+#Cosa noto dalle frequenzeassolute e dalle percentuali (f. relative)?
+#gli edifici e il suolo antropizzato aumentano
+#La copertura boschiva diminuisce
+
+
+
+### Sesta Parte, Creazione di una tabella contente i dati appena estratti e graficazione con Barplot ###
+
+#voglio inserire in tabella i dati appena elaborati
+Forest <- c(50.2, 36.6)
+Anthr_Soil <- c(33.7, 45.2)
+Buildings <- c(16.1, 18.1)
+Years <- c("2013", "2019")
+#creo dei vettori che contengano i miei valori
+#anche se sono numeri, li metto fra virgolette
+#cosi facendo sono un dato character e posso inserire %
+
+piana.frame <- data.frame(Forest, Anthr_Soil, Buildings)
+#ho creato il data frame
+rownames(piana.frame) <- Years
+piana.frame
+write.csv(piana.frame, file = "piana_frame.csv") 
+#tabella salvata come file .csv da poter aprire in Excel
+
+#BARPLOT
+barplot(t(as.matrix(piana.frame)),
+        main = "% Land Cover negli anni",
+        xlab = "Anni", ylab = "Land Cover %",
+        col = c("darkgreen", "yellow", "red"),
+        legend.text = c("Bosco", "Suolo Antropizzato", "Infrastrutture"),
+        xlim = c(0,10),
+        beside = TRUE)
+
+### Settima Parte, Analisi della variabilità del NIR ###
+
+#NIR è la banda più informativa all'interno del lavoro svolto
+
