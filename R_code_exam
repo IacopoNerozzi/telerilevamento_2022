@@ -1,5 +1,5 @@
 
-### Uso del suolo nella piana Pistoia-Prato-Firenze ####
+### USO DEL SUOLO NELLA PIANA PISTOIA-PRATO-FIRENZE ###
 
 #caricamento di librerie necessarie ai codici successivi
 library(raster)
@@ -58,8 +58,8 @@ plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")
 #con la funzione par posso visualizzare insieme le due immagini per un primo confronto visivo
 par(mfrow=c(1,2)) 
 #due righe e una colonna, avrò immagini una sopra l'altra
-plotRGB(toscana_2013, r=4, g=3, b=2, stretch="Lin")
-plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")
+plotRGB(toscana_2013, r=4, g=3, b=2, stretch="Lin")  + title(main = "Toscana 2013")
+plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")  + title(main = "Toscana 2019")
 dev.off()
 #la visualizzazione "doppia" di par rimarrebbe di default 
 #dev.off azzera i plot e le impostazioni grafiche
@@ -125,15 +125,12 @@ piana13bit8
 #IMMAGINE 2019
 piana19bit8 <- calc(piana2019, fun=function(x){((x - min(x)) * 255)/(max(x)- min(x)) + 0})
 piana19bit8
-plot(piana13bit8)
-plot(piana2013)
-plot(toscana_2013)
 
 
 #PLOT AREA d'INTERESSE in NIR
 par(mfrow=c(1,2))
-plotRGB(piana13bit8, r=5, g=4, b=3, stretch="Lin")
-plotRGB(piana19bit8, r=5, g=4, b=3, stretch="Lin")
+plotRGB(piana13bit8, r=5, g=4, b=3, stretch="Lin") + title(main = "NIR 2013")
+plotRGB(piana19bit8, r=5, g=4, b=3, stretch="Lin") + title(main = "NIR 2019")
 #confronto le nuove immagini con visualizzazione in NIR
 dev.off()
 
@@ -160,8 +157,8 @@ cl <- colorRampPalette(c("darkblue", "blue", "yellow", "red","black")) (100)
 
 #visualizzazione in multiframe con par per confronto visivo
 par(mfrow=c(1,2))
-plot(dvi2013, col=cl)
-plot(dvi2019, col=cl)
+plot(dvi2013, col=cl) + title(main = "DVI 2013")
+plot(dvi2019, col=cl) + title(main = "DVI 2019")
 dev.off()
 #dovrei apprezzare quindi la variazione di aree rosse (vegetazione) fra 2013 e 2019
 #dovrei vedere l'aumento delle aree gialle (deforestate) fra 2013 e 2019
@@ -184,6 +181,16 @@ ndvi2013
 ndvi2019 <- dvi2019 / (piana19bit8[[5]] + piana19bit8[[4]])
 ndvi2019
 
+#PLOT dei due NDVI
+par(mfrow=c(1,2))
+plot(ndvi2013, col=cl) + title(main = "NDVI 2013")
+plot(ndvi2019, col=cl) + title(main = "NDVI 2019")
+dev.off()
+#simile al plot del dvi
+#non apprezzabilissima la differenza da queste immagini
+
+
+
 ### QUINTA PARTE, classificazione delle immagini ###
 
 #voglio quantificare su mappa quanto è cambiato
@@ -197,8 +204,8 @@ class19 <- unsuperClass(piana19bit8, nClasses=3)
 
 #visualizzo a schermo le mappe 2000 e 2020 per un primo confronto visivo
 par(mfrow=c(1,2))
-plot(class13$map)
-plot(class19$map)
+plot(class13$map) + title(main = "UnsuperClass 2013")
+plot(class19$map) + title(main = "UnsuperClass 2019")
 dev.off()
 #non riesce a discriminare l'acqua dalla vegetazione, una debolezza della classificazione, va a perdersi informazione
 
@@ -323,7 +330,4 @@ ggplot() +
   geom_raster(sd7, mapping=aes(x=x, y=y, fill=layer)) +
   scale_fill_viridis() +
   ggtitle("Standard deviation by viridis")
-
-
-
 
