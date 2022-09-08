@@ -1,3 +1,7 @@
+
+### Uso del suolo nella piana Pistoia-Prato-Firenze, Toscana ###
+
+
 #caricamento di librerie necessarie ai codici successivi
 library(raster)
 #permette l'utilizzo dei raster e funzioni annesse
