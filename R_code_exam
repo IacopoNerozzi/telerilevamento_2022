@@ -1,6 +1,5 @@
 
-### Uso del suolo nella piana Pistoia-Prato-Firenze, Toscana ###
-
+### Uso del suolo nella piana Pistoia-Prato-Firenze ####
 
 #caricamento di librerie necessarie ai codici successivi
 library(raster)
@@ -13,6 +12,8 @@ library(patchwork)
 #permette la crwazione di multiframe in ggplot
 library(viridis)
 #permette l'utilizzo della scala di colori viridis
+library(gridExtra)
+#permette la creazione di grafici e simili
 setwd("C:/lab/esame/bande/")
 #settaggio come nostro solito della working directory
 
@@ -81,7 +82,7 @@ gg2013 + gg2019
 #è un altro modo per fare un confronto visivo
 dev.off()
 
-#nota negativa...ggRGB lavora molto lentamente sul mio dispositivo :(
+#nota negativa...ggRGB lavora molto lentamente sul mio dispositivo
 
 
 
@@ -183,8 +184,6 @@ ndvi2013
 ndvi2019 <- dvi2019 / (piana19bit8[[5]] + piana19bit8[[4]])
 ndvi2019
 
-
-
 ### QUINTA PARTE, classificazione delle immagini ###
 
 #voglio quantificare su mappa quanto è cambiato
@@ -214,7 +213,7 @@ freq(class13$map)
 # B2 (giallo) (suolo antr.) = 350719
 # B3 (verde) (bosco + acqua) = 635210
 # NA = 24 ---------> pixel che non riesce a categorizzare
-freq(class19$map) 
+freq(class19$map)
 # B1 (bianco) (edifici) = 247825
 # B2 (giallo) (suolo antr.) = 404037
 # B3 (verde) (bosco + acqua) = 581138 
@@ -248,23 +247,28 @@ prop2
 ### SETTIMA PARTE, Creazione di una tabella contente i dati appena estratti e graficazione con Barplot ###
 
 #voglio inserire in tabella i dati appena elaborati
-Forest <- c(51.5, 47.1)
-Anthr_Soil <- c(28.4, 32.8)
-Buildings <- c(20.0, 20.1)
-Years <- c("2013", "2019")
+Bosco <- c(51.5, 47.1)
+Suolo_Antr <- c(28.4, 32.8)
+Edifici <- c(20.0, 20.1)
+Anni <- c("2013", "2019")
 #creo dei vettori che contengano i miei valori
 #anche se sono numeri, li metto fra virgolette
 #cosi facendo sono un dato character e posso inserire %
 
-piana.frame <- data.frame(Forest, Anthr_Soil, Buildings)
+piana.frame <- data.frame(Bosco, Suolo_Antr, Edifici)
 #ho creato il data frame
-rownames(piana.frame) <- Years
+rownames(piana.frame) <- Anni
 piana.frame
-write.csv(piana.frame, file = "piana_frame.csv") 
-#tabella salvata come file .csv da poter aprire in Excel
+  
+
+#salvo la tabella come immagine
+png("dataframe.png", height=300, width=300)
+p<-tableGrob(piana.frame)
+grid.arrange(p)
+dev.off()
 
 
-#BARPLOT
+#Per una visualizzazione migliore dei risultati creo un Barplot
 barplot(t(as.matrix(piana.frame)),
         main = "% Uso del suolo negli anni",
         xlab = "Anni", ylab = "Uso del suolo %",
@@ -277,8 +281,7 @@ barplot(t(as.matrix(piana.frame)),
 
 ### OTTAVA PARTE, Analisi della variabilità sul NIR ###
 
-#Var su 2013
-
+#VAR su 2013
 nir13 <- piana13bit8[[5]]
 #associo la banda del NIR ad un oggetto
 nir13
@@ -301,7 +304,7 @@ ggplot() +
   ggtitle("Standard deviation by viridis in 2013")
 
 
-#Var su 2019
+#VAR su 2019
 nir19 <- piana19bit8[[5]]
 nir19
 sd19 <- focal(nir19, matrix(1/9, 3, 3), fun=sd)
@@ -312,7 +315,7 @@ ggplot() +
   scale_fill_viridis() +
   ggtitle("Standard deviation by viridis in 2019")
 
-#variabilità in una matrice 7x7
+#vAR 2019 in una matrice 7x7
 sd7 <- focal(nir19, matrix(1/49, 7, 7), fun=sd)
 sd7
 
@@ -320,5 +323,7 @@ ggplot() +
   geom_raster(sd7, mapping=aes(x=x, y=y, fill=layer)) +
   scale_fill_viridis() +
   ggtitle("Standard deviation by viridis")
+
+
 
 
