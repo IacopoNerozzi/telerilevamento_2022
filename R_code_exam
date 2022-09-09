@@ -58,8 +58,8 @@ plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")
 #con la funzione par posso visualizzare insieme le due immagini per un primo confronto visivo
 par(mfrow=c(1,2)) 
 #due righe e una colonna, avrò immagini una sopra l'altra
-plotRGB(toscana_2013, r=4, g=3, b=2, stretch="Lin")  + title(main = "Toscana 2013")
-plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")  + title(main = "Toscana 2019")
+plotRGB(toscana_2013, r=4, g=3, b=2, stretch="Lin") 
+plotRGB(toscana_2019, r=4, g=3, b=2, stretch="Lin")  
 dev.off()
 #la visualizzazione "doppia" di par rimarrebbe di default 
 #dev.off azzera i plot e le impostazioni grafiche
