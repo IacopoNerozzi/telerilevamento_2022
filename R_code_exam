@@ -1,4 +1,5 @@
 
+
 ### USO DEL SUOLO NELLA PIANA PISTOIA-PRATO-FIRENZE ###
 
 #caricamento di librerie necessarie ai codici successivi
@@ -7,19 +8,20 @@ library(raster)
 library(RStoolbox)
 #permette l'uso della Unsupervised Classification
 library(ggplot2)
-#permette il plottaggio in ggRGB
+#permette il plottaggio in ggRGB e ggplot
 library(patchwork)
-#permette la crwazione di multiframe in ggplot
+#permette la creazione di multiframe
 library(viridis)
 #permette l'utilizzo della scala di colori viridis
 library(gridExtra)
-#permette la creazione di grafici e simili
+#permette la creazione di grafici, tabelle e simili
+
 setwd("C:/lab/esame/bande/")
 #settaggio come nostro solito della working directory
 
 
 
-### PRIMA PARTE, Importazione dei dati, ricampionamento e una prima visualizzazione ###
+### PRIMA PARTE, Importazione dei dati e una prima visualizzazione ###
 
 #IMMAGINE DEL 2013
 list_2013 <- list.files(pattern="2013_B")
@@ -96,8 +98,9 @@ extent(toscana_2013)
 #visualizzo l'estensione della mia immagine, con i valori limite
 ggRGB(toscana_2013, r=5, g=4, b=3, stretch="Lin")
 #plot ggRGB per avere l'estensione dell'immagine originale anche su plot
-#in questo modo le inserisco meglio
-ext <- c(648000, 685000, 4840000, 4870000) # qui metto le coordinate, le estensioni limite del mio ritaglio
+#in questo modo le inserisco più facilmente
+ext <- c(648000, 685000, 4840000, 4870000) 
+#qui metto le coordinate, le estensioni limite del mio ritaglio
 #creo un vettore di posizione che inserirò nella funzione crop, farà da coordinate di ritaglio
 piana2013 <- crop(toscana_2013, ext)
 piana2013
@@ -109,7 +112,6 @@ plotRGB(piana2013, r=4, g=3, b=2, stretch="Lin")
 
 #CROP DELL'IMMAGINE 2019
 extent(toscana_2019)
-#dopo il ricampionamento i valori sono gli stessi dell'immagine 2013
 #non ho bisogno di ricalcolare le coordinate, uso ext 2013
 piana2019 <- crop(toscana_2019, ext)
 piana2019
@@ -126,8 +128,9 @@ piana13bit8
 piana19bit8 <- calc(piana2019, fun=function(x){((x - min(x)) * 255)/(max(x)- min(x)) + 0})
 piana19bit8
 
+#calc() è una funzione usata per calcolare i valori e convertire un oggetto Raster in un altro
 
-#PLOT AREA d'INTERESSE in NIR
+#MULTIFRAME IN NIR
 par(mfrow=c(1,2))
 plotRGB(piana13bit8, r=5, g=4, b=3, stretch="Lin") + title(main = "NIR 2013")
 plotRGB(piana19bit8, r=5, g=4, b=3, stretch="Lin") + title(main = "NIR 2019")
@@ -136,7 +139,7 @@ dev.off()
 
 
 
-### QUARTA PARTE, calcoleremo il DVI nel 2013, poi nel 2019, infine vederemo la differenza negli anni ###
+### QUARTA PARTE, calcoleremo il DVI e l' NDVI nel 2013 e nel 2019 ###
 
 #DVI 2013
 dvi2013 <- piana13bit8[[5]] - piana13bit8[[4]]
@@ -155,7 +158,7 @@ cl <- colorRampPalette(c("darkblue", "blue", "yellow", "red","black")) (100)
 #il giallo cattura l'attenzione dell'occhio, buon colore da usare per evidenziare criticità
 #si associa quindi alle zone interessate da cementificazione
 
-#visualizzazione in multiframe con par per confronto visivo
+#MULTIFRAME DVI
 par(mfrow=c(1,2))
 plot(dvi2013, col=cl) + title(main = "DVI 2013")
 plot(dvi2019, col=cl) + title(main = "DVI 2019")
@@ -163,25 +166,30 @@ dev.off()
 #dovrei apprezzare quindi la variazione di aree rosse (vegetazione) fra 2013 e 2019
 #dovrei vedere l'aumento delle aree gialle (deforestate) fra 2013 e 2019
 
-#Calcolo della differenza di DVI fra 2013 e 2019
+#Come è cambiato il DVI nel tempo?
+
+#CALCOLO DIFFERENZA DVI FRA 2013 E 2019
 dvi_dif <- dvi2013 - dvi2019
 dvi_dif
 #riprendo una palette utilizzata a lezione per visualizzare la variazione a schermo
 cld <- colorRampPalette(c("blue", "white", "red")) (100)
 
-#plot in multiframe della variazione DVI negli anni
+#PLOT DIF. DVI
 plot(dvi_dif, col=cld)
 #nelle aree con più alta variazione ho colore rosso
 
-# NDVI, utile per fare confronti
+#E se volessimo confrontare immagini diverse?
+#Dobbiamo normalizzare il nostro indice ---> NDVI
 
+#NDVI 2013
 ndvi2013 <- dvi2013 / (piana13bit8[[5]] + piana13bit8[[4]])
 ndvi2013
 
+#NDVI2019
 ndvi2019 <- dvi2019 / (piana19bit8[[5]] + piana19bit8[[4]])
 ndvi2019
 
-#PLOT dei due NDVI
+#MULTIFRAME NDVI
 par(mfrow=c(1,2))
 plot(ndvi2013, col=cl) + title(main = "NDVI 2013")
 plot(ndvi2019, col=cl) + title(main = "NDVI 2019")
@@ -197,17 +205,20 @@ dev.off()
 #categorizzo quindi in 3 classi la mappa con la funzione unsuperClass
 #unsuperclass non mantiene sempre la stessa corrispondenza colore-categorizzazione, la associa randomicamente ad ogni rilancio dello script
 set.seed(25)
-#prima di ciò ho lanciato set.seed() che mi permette di avere la stessa classificazione per tutte le immagini
+#prima di ciò ho lanciato set.seed() che mi permette di avere la stessa classificazione per tutti gli oggetti
 class13 <- unsuperClass(piana13bit8, nClasses=3)
 class19 <- unsuperClass(piana19bit8, nClasses=3)
 #ottengo 2 rasterlayer classificati in 3 livelli
 
-#visualizzo a schermo le mappe 2000 e 2020 per un primo confronto visivo
+#MULTIFRAME unsuperClass
 par(mfrow=c(1,2))
 plot(class13$map) + title(main = "UnsuperClass 2013")
 plot(class19$map) + title(main = "UnsuperClass 2019")
 dev.off()
-#non riesce a discriminare l'acqua dalla vegetazione, una debolezza della classificazione, va a perdersi informazione
+#non riesce a discriminare l'acqua dalla vegetazione
+#questo può essere dovuto al carico organico del fiume
+#oppure, probabilmente, ad una debolezza della classificazione
+#va a perdersi informazione
 
 
 
@@ -228,15 +239,15 @@ freq(class19$map)
 #non inficia significativamente sulla frequenza relativa (o percentuale)
 
 #calcolo delle percentuali, il numero di pixel per banda, sull'area tot
-area_tot <- (247825 + 404037 +581138) 
+area_tot <- (247825 + 404037 + 581138) 
 area_tot
 #1233000
 
 prop1 <- freq(class13$map) / area_tot
 prop1
 # B1 (bianco) (edifici) = 20.0 %
-# B2 (verde) (suolo antr.) = 28.4 %
-# B3 (giallo) (bosco + acqua) = 51.5 %
+# B2 (giallo) (suolo antr.) = 28.4 %
+# B3 (verde) (bosco + acqua) = 51.5 %
 # NA = 0.000...       = non influente sulle percentuali 
 
 prop2 <- freq(class19$map) / area_tot
@@ -245,9 +256,12 @@ prop2
 # B2 (giallo) (suolo antr.) = 32.8 %
 # B3 (verde) (bosco + acqua) = 47.1 %
 
-#Cosa noto dalle frequenzeassolute e dalle percentuali (f. relative)?
+#Cosa noto dalle frequenze assolute e dalle percentuali (f. relative)?
 #gli edifici e il suolo antropizzato aumentano
 #La copertura boschiva diminuisce
+
+#Nota negativa: la classificazione non discrimina bene edifici e suolo antr.
+#essendo comunque il loro rapporto con quantità di bosco ad interessarci, va bene comunque
 
 
 
@@ -267,13 +281,11 @@ piana.frame <- data.frame(Bosco, Suolo_Antr, Edifici)
 rownames(piana.frame) <- Anni
 piana.frame
   
-
 #salvo la tabella come immagine
 png("dataframe.png", height=300, width=300)
-p<-tableGrob(piana.frame)
+p <- tableGrob(piana.frame)
 grid.arrange(p)
 dev.off()
-
 
 #Per una visualizzazione migliore dei risultati creo un Barplot
 barplot(t(as.matrix(piana.frame)),
@@ -288,7 +300,7 @@ barplot(t(as.matrix(piana.frame)),
 
 ### OTTAVA PARTE, Analisi della variabilità sul NIR ###
 
-#VAR su 2013
+#VAR 2013
 nir13 <- piana13bit8[[5]]
 #associo la banda del NIR ad un oggetto
 nir13
@@ -304,14 +316,14 @@ sd13
 #la deviazione standard è una funzione di misura della variabilià
 #misura la variazione intorno alla media
 
-#plottiamola con viridis
+#PLOT CON VIRIDIS
 ggplot() + 
   geom_raster(sd13, mapping=aes(x=x, y=y, fill=layer)) +
   scale_fill_viridis() +
   ggtitle("Standard deviation by viridis in 2013")
 
 
-#VAR su 2019
+#VAR 2019
 nir19 <- piana19bit8[[5]]
 nir19
 sd19 <- focal(nir19, matrix(1/9, 3, 3), fun=sd)
